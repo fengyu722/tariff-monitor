@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html data-page-node-id="kTff7YWJuPeh08wXG8PhHN" data-theme="light" lang="zh-CN">
+<head data-page-node-id="F3cE1NB7UpwcFojwh5HDAD">
+<script data-page-node-id="otbyGF6v5WTsgcowgm6sWi" src="/page/page_comm/inject.js"></script>
+<meta data-page-node-id="S90Gwa6WtH88tDxnlJOO25" charset="UTF-8">
+<meta data-page-node-id="XxDkEoBIpFXH0p9KJoMKfu" content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title data-page-node-id="lVQyECWT5umkz5M9xJfZBH" data-pnid-children="GsQIoH6QqWw2sIC2002j3j">资费监控 · 数据一览</title>
+<style data-page-node-id="flzof7WMG3oC3MzFugJr96" data-pnid-children="xRfOx7lyAnENyrz0bS6AWP">
+:root{
+  --bg1:#061021; --bg2:#0a1c31; --bg3:#0e2540;
+  --glass:rgba(255,255,255,.09); --glass2:rgba(255,255,255,.12);
+  --bd:rgba(255,255,255,.13); --bd2:rgba(255,255,255,.24);
+  --tx:#f7fbff; --tx2:#d9e5f3; --tx3:#b0c1d8;
+  --ac:#4cc9f0; --ac2:#0085d0; --ok:#34d399; --warn:#fbbf24; --bad:#fb7185;
+  --sh:0 18px 46px rgba(0,0,0,.42); --r:20px; --r2:14px;
+}
+html[data-theme="light"]{
+  --bg1:#eef4fb; --bg2:#e3edf7; --bg3:#d8e7f5;
+  --glass:rgba(255,255,255,.72); --glass2:rgba(255,255,255,.9);
+  --bd:rgba(10,40,80,.1); --bd2:rgba(10,40,80,.18);
+  --tx:#0d2b45; --tx2:#28506f; --tx3:#5a7894;
+  --ac:#0077b6; --ac2:#005f8f; --ok:#059669; --warn:#d97706; --bad:#e11d48;
+  --sh:0 14px 40px rgba(20,60,100,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--tx);min-height:100vh;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2) 55%,var(--bg3));
+  background-attachment:fixed;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 18px 60px}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+.logo{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+  font-size:20px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--ac2),var(--ac));
+  box-shadow:var(--sh)}
+h1{font-size:22px;letter-spacing:.5px}
+.sub{font-size:12.5px;color:var(--tx3);margin-top:3px}
+.spacer{flex:1}
+.pill{font-size:12px;padding:7px 12px;border-radius:99px;background:var(--glass);
+  border:1px solid var(--bd);color:var(--tx2);white-space:nowrap}
+.btn{font:inherit;font-size:12.5px;cursor:pointer;padding:8px 14px;border-radius:10px;
+  border:1px solid var(--bd2);background:var(--glass);color:var(--tx);transition:.15s}
+.btn:hover{background:var(--glass2);transform:translateY(-1px)}
+.btn.pri{border-color:transparent;background:linear-gradient(135deg,var(--ac2),var(--ac));color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px}
+.card{border-radius:var(--r);border:1px solid var(--bd);background:var(--glass);
+  padding:18px 20px;box-shadow:var(--sh);backdrop-filter:blur(18px)}
+.card .k{font-size:12.5px;color:var(--tx3)}
+.card .v{font-size:30px;font-weight:800;margin-top:6px;letter-spacing:.5px}
+.card .m{font-size:11px;color:var(--tx3);margin-top:4px}
+.panel{border-radius:var(--r);border:1px solid var(--bd);background:var(--glass);
+  padding:20px;box-shadow:var(--sh);backdrop-filter:blur(18px);margin-bottom:20px}
+.panel h2{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+input,select{font:inherit;font-size:13px;padding:9px 12px;border-radius:10px;
+  border:1px solid var(--bd2);background:var(--glass2);color:var(--tx);outline:none}
+input:focus,select:focus{border-color:var(--ac)}
+.search{flex:1;min-width:180px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:12px;padding:7px 12px;border-radius:99px;border:1px solid var(--bd);
+  background:var(--glass);color:var(--tx2);cursor:pointer}
+.chip.on{background:var(--ac);color:#fff;border-color:transparent}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--tx3);font-weight:600;font-size:12px}
+tr:hover td{background:var(--glass)}
+.tag{font-size:11px;padding:3px 8px;border-radius:6px;background:var(--glass2);border:1px solid var(--bd)}
+.tag.gov{color:var(--warn)} .tag.free{color:var(--ok)}
+.price{font-weight:800;color:var(--bad)}
+.empty{padding:40px;text-align:center;color:var(--tx3);font-size:13px}
+.pager{display:flex;justify-content:center;gap:8px;margin-top:16px}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:50;padding:18px}
+.mask.show{display:grid}
+.modal{width:min(460px,100%);max-height:86vh;overflow:auto;border-radius:var(--r);
+  border:1px solid var(--bd2);background:var(--bg2);padding:24px;box-shadow:var(--sh)}
+.modal h3{font-size:17px;margin-bottom:12px}
+.modal p{font-size:12.5px;color:var(--tx3);line-height:1.7;margin-bottom:14px}
+.modal input{width:100%;margin-bottom:12px}
+.row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.hint{font-size:11px;color:var(--tx3);margin-top:10px;line-height:1.6}
+a{color:var(--ac)}
+.tl{border-left:2px solid var(--bd);padding-left:16px}
+.tl .ev{position:relative;padding:8px 0;font-size:13px}
+.tl .ev::before{content:"";position:absolute;left:-21px;top:14px;width:9px;height:9px;
+  border-radius:50%;background:var(--ac)}
+.tl .ev.add::before{background:var(--ok)} .tl .ev.del::before{background:var(--bad)}
+@media(max-width:640px){h1{font-size:18px}.card .v{font-size:24px}.panel{padding:14px}}
+</style>
+</head>
+<body data-page-node-id="ARGy9XucVvOWXcxskhFQfS">
+<div data-page-node-id="3VGAde5rmG3DnudClHHlSr" class="wrap">
+  <header data-page-node-id="cLJCWWlJt90ldxehEttbnL">
+    <div data-page-node-id="C9WqaY1NwFbLatyUPZJhB4" class="logo"><!--pnid:B6XErbN0IZs9vlpPeq2Hmz-->资</div>
+    <div data-page-node-id="HEBjTw6INFzQNsJpZ0t92E">
+      <h1 data-page-node-id="aEnMkoeYsfti7JGQoeuMkY"><!--pnid:Umf2EOTpLG4SKDALI6aRpW-->资费监控 · 数据一览</h1>
+      <div data-page-node-id="DYqwfgMtELJDNUhIS4ZUCM" class="sub" id="sub"><!--pnid:w1mKgBpBvOiRHyya82wlbb-->全网 · 各省资费数据一览</div>
+    </div>
+    <div data-page-node-id="ADDcvn5I5B47AtWqqU69Aa" class="spacer"></div>
+    <span data-page-node-id="672LQUwK6cGF8ykLuh2bKE" class="pill" id="status"><!--pnid:kr7AvgLbvzYr7PBxQTo7Bd-->加载中…</span>
+    <button data-page-node-id="lb4AfdCeGXMgk8JT7fZiCN" class="btn" id="btnFetch"><!--pnid:AogzBYG8V5bwXk5RQRlJZs-->一键抓取</button>
+  </header>
+
+  <div data-page-node-id="7np8g1RkevgEPqzKlIlHna" class="grid">
+    <div data-page-node-id="fe9asVtkOJGpvhgU5ovp2Q" class="card"><div data-page-node-id="h03BG2s4RPdqpZ6lmCKEth" class="k"><!--pnid:DAvWixKB0dE2CLgE1G0nSf-->🌐 全网通用资费</div><div data-page-node-id="7L5k6902ZMhi1oZ57ilnhJ" class="v" id="s1"><!--pnid:p66DEPmiuBly29HXaJ9gNP-->—</div><div data-page-node-id="INlbSQlZjHTXKtlgfQypXM" class="m"><!--pnid:GPjsCUkkEFFUzIvVlmtqmg-->全国范围</div></div>
+    <div data-page-node-id="84iBTTLCN9CllIMGAitzpQ" class="card"><div data-page-node-id="dEpBFieA6oQE4KpBKytODh" class="k"><!--pnid:grBrx9P9FnAig1GxpP6Q7l-->🗺️ 覆盖省份</div><div data-page-node-id="nuDUnSEcEFwO5mictNIgzo" class="v" id="s2"><!--pnid:NUD1lMNiJv2cMrZqjrokT1-->—</div><div data-page-node-id="JKmgmtNUHJbUUfcx8Zkqq5" class="m"><!--pnid:XHfKjldm8U1DDq6CnWWELa-->去重统计</div></div>
+    <div data-page-node-id="nYI3mELtBZ51odxJRaiKEJ" class="card"><div data-page-node-id="BsXbBDirVu929YDpbC3a4i" class="k"><!--pnid:pM9gkmLj1sY3ILc0B85E0m-->📦 在架总数</div><div data-page-node-id="FEIKCps14i7N02lg5uC7Wo" class="v" id="s3"><!--pnid:opB0C9vrO8sC2WTAKDQrtc-->—</div><div data-page-node-id="a1GNabvR4TgdAIYb40eViI" class="m" id="s3m"><!--pnid:XAt9YsrSJrHXvCSOSyCgc7-->—</div></div>
+    <div data-page-node-id="EuEIvb47zE2XSUIpdrbQdN" class="card"><div data-page-node-id="0n1SyonoKe19ZesWmTpKZe" class="k"><!--pnid:SGg106ZfjkFykyvBieBnq7-->🔄 最近更新</div><div data-page-node-id="93t5zMfZJbu3UDV5FfJm5S" class="v" id="s4" style="font-size:16px; margin-top:12px"><!--pnid:4Z9kuG2HNc0ASVsTPPaSDc-->—</div><div data-page-node-id="X3CbOXnRFpATCmjIzakc7Q" class="m"><!--pnid:Cjup2ef5DKAurWKrynTZah-->数据抓取时间</div></div>
+  </div>
+
+  <div data-page-node-id="kFWrsSmR1N0Ggn9hMKnUEy" class="panel">
+    <h2 data-page-node-id="uGj4zeyscJgk1IkRpJeV1R"><!--pnid:hheWHH85qr859tIvjKWZIQ-->📋 资费列表</h2>
+    <div data-page-node-id="WdDLlqAGeEPZbTHlKkwzBQ" class="bar">
+      <input data-page-node-id="R9c2iZGyJNee5TM6caiteT" class="search" id="q" placeholder="搜索套餐名称…">
+      <select data-page-node-id="6YME7Ws3jhXX1jafmbgikq" id="prov"><option data-page-node-id="2h8efqtQbUSTT2j4vbnh9Q" value><!--pnid:YPAcXmHiqmyOrwnSt6qc6r-->全部省份</option></select>
+      <select data-page-node-id="16tp1pLiHaGGjVw2PXGcOM" id="owner"><option data-page-node-id="TCbSnvDL6p1xrO5yhDrlTT" value><!--pnid:EKFcRaCFvyVbizAjhgF1J8-->全部归属</option><option data-page-node-id="A7opnWTN5qM1Lc5CJdJbYL"><!--pnid:QXuyX1YArgmzZcOG684xjP-->个人</option><option data-page-node-id="5o2xzLWsXXFs2juqWlxHZu"><!--pnid:9nJCF1ZeS2YI5TJH42ut65-->政企</option></select>
+      <select data-page-node-id="6vcG7hIFr9BtrdhnTKd202" id="type"><option data-page-node-id="8SD2bRoW46Dwz6ZJMscgL8" value><!--pnid:nth8VmqC44UTxaEQDdd3uT-->全部类型</option></select>
+      <button data-page-node-id="xlZaGPcWXdNOGFBJVsrayp" class="btn" id="sortPrice"><!--pnid:kZDVoHsdGqxThxHT2los2N-->按价格</button>
+      <button data-page-node-id="nayldqw4FDYGMXhTjR6K5j" class="btn" id="onlyFree"><!--pnid:QEI2NZnEGfCxAF4Xl7lEeH-->零元业务</button>
+      <button data-page-node-id="GGHh5MVtaVqS1ofuhBtzEJ" class="btn" id="reset"><!--pnid:CJdlXddBznwQ0HjBf30PDE-->重置</button>
+    </div>
+    <div data-page-node-id="tm24IgE5YBozIKdUpwtKvT" style="overflow-x:auto">
+      <table data-page-node-id="234JL191yCbfzgEzHhgdoE">
+        <thead data-page-node-id="nUqz4tfPKIBDbB8x5ddTF5"><tr data-page-node-id="lrGpuRpYgksrlpJ9pLYOul"><th data-page-node-id="6mP23qungXRoHmsmf9ycvm"><!--pnid:u67x0EME1BMB5JQk0VsAyx-->套餐名称</th><th data-page-node-id="5z7SEOTzAY2ioPe6BbyNR6"><!--pnid:S4NdSGqt0jQdMwoycHE4dg-->月费</th><th data-page-node-id="Ng7qcrofR2p7mWgI4PTDXp"><!--pnid:K8r2sYEpRiG4kpgnJtVn9E-->流量</th><th data-page-node-id="vduuy1lcWaa6ZahaEkPp7W"><!--pnid:SR0NZFbHp2QGbITUPtxKOW-->通话</th><th data-page-node-id="oRCcqXQpZ6CVfCoPaT1rUw"><!--pnid:CohFCWGNOljQGg2QtWArew-->省份</th><th data-page-node-id="XC6H6JFbvjD5hU425pYUYT"><!--pnid:hU1A7x02Xx4nxfo6dXdUUQ-->归属</th><th data-page-node-id="mkVYyI3WFw2Ncdmq7IY1oJ"><!--pnid:jfCwgTqGxDWn3H9mGvDn3X-->类型</th><th data-page-node-id="DChMECQVgKNIlQGshjC7RZ"><!--pnid:qocdAJpuXnItZDS0sb38cw-->更新</th></tr></thead>
+        <tbody data-page-node-id="npIXW7bbx81lpQ9NX8cR2b" id="tb"><tr data-page-node-id="mNR36in2YceBrURMqd4eWh"><td data-page-node-id="TMYEZMIQepLl1l5i3X1uHH" class="empty" colspan="8"><!--pnid:lhZAx2QhUyeW5GgEtphv2X-->加载中…</td></tr></tbody>
+      </table>
+    </div>
+    <div data-page-node-id="ITjkOfUa8QqbJccjl6bpe3" class="pager">
+      <button data-page-node-id="1NMqhC1NmZKLD4iCvwNseB" class="btn" id="prev"><!--pnid:tvQn1kgPnFgIcTuqlNhakN-->‹ 上一页</button>
+      <span data-page-node-id="dCUaQQxim3QIGfYQBpg2aW" class="pill" id="pageInfo"><!--pnid:pUQU7KjdNQwTyVK0C5I2Qx-->1 / 1</span>
+      <button data-page-node-id="0vKWCxgtmAYlsbMTHriIN6" class="btn" id="next"><!--pnid:XVSSZdZDNH2HuQ2seUHbwG-->下一页 ›</button>
+    </div>
+  </div>
+
+  <div data-page-node-id="jzaziPTbzVDumL0GKtOUwa" class="panel">
+    <h2 data-page-node-id="P67LckReJPA2ZUCM41GUne"><!--pnid:DEAmoomHwJ9l8y0vNnoGC9-->🏛️ 各省资费排行</h2>
+    <div data-page-node-id="ucXrx83DiLjT5rPtw2pHO8" class="chips" id="rank"></div>
+  </div>
+
+  <div data-page-node-id="wJJcX1TtXFPvjgL6VihoUO" class="panel">
+    <h2 data-page-node-id="WhLFoal5AWT7tgjV4pKSbx"><!--pnid:Q1SIjNvfESD8CGZwyoJ9On-->⏱️ 资费变更时间线</h2>
+    <div data-page-node-id="CaZyNdMCKYfQdGZ7y0lMrq" class="tl" id="timeline"><div data-page-node-id="uGCGZrOreAG0uJalWrY88P" class="empty"><!--pnid:0XwXRxOxnY8QjHppL4C5PG-->暂无变更记录</div></div>
+  </div>
+</div>
+
+<!--pnid:dRTFWuO41eGQF1r4JY5aNp--><!-- 一键抓取弹窗 -->
+<div data-page-node-id="ET9iss6FWcSCf9erjkmsKG" class="mask" id="tkMask">
+  <div data-page-node-id="DKC7X8pnZcHHP52d6bheEW" class="modal">
+    <h3 data-page-node-id="mWeslFA8rSs8502RPU01eV"><!--pnid:FaQpwrJj96oIcg3UcufDEB-->开启一键抓取</h3>
+    <p data-page-node-id="jFCv4Rry87mu471VbhjtlN"><!--pnid:VMFutaERicdBKaNPmgd5D6-->
+      填入一个对本仓库有 <b data-page-node-id="2uIqxYDg17L18w9HVRahxa"><!--pnid:3OEfLxI1oyisIQcPQDDKtx-->Actions 读写</b><!--pnid:REohaecoX1pDrrd80pQkhb--> 权限的 GitHub 令牌，点「保存并抓取」即可触发云端抓取，
+      跑完自动刷新页面。<br data-page-node-id="FlI1vVglJv8tiPvW9GwMYd"><br data-page-node-id="7dgqpiGdAGy6r95teoaOgD"><!--pnid:lKMJovlkvQJQoFBkVLHYWF-->
+      令牌<b data-page-node-id="oNfEP0UmoS7ecPhRTOZbyp"><!--pnid:Sl6gPDUwobM4Ba8EU54WpT-->只保存在你本机浏览器</b><!--pnid:ngWg0tGWS5mS3DIhRqP4Di-->，不会写进仓库、不会上传到任何地方。<br data-page-node-id="nJfB8JQU9doFW4vj7BTX6O"><br data-page-node-id="fw9o0hJFuDaAVU4YgAhNVp"><!--pnid:T8oe6bL9uhIB7xSdM96ATi-->
+      创建路径：GitHub → Settings → Developer settings → Personal access tokens →
+      Fine-grained → 只选本仓库 → Actions 设为 Read and write。
+    </p>
+    <input data-page-node-id="TTnyZA5uwvI3FTuKbWdSxZ" id="tkInput" placeholder="github_pat_…" type="password">
+    <div data-page-node-id="52mGz6BrbvkwdE4YuwVFaV" class="row">
+      <button data-page-node-id="kdyTlCLvAtO7EemVn6p0C3" class="btn" id="tkClear"><!--pnid:ACVwzdkchUlrMMIQIs4WPt-->清除令牌</button>
+      <button data-page-node-id="xkMSzfl28lo2hJOlSEj8uN" class="btn" id="tkCancel"><!--pnid:9x4cv6mxhde8XxRvmN5QUB-->取消</button>
+      <button data-page-node-id="SVgNuRZdzlyRjH2Ou30O6o" class="btn pri" id="tkSave"><!--pnid:N3ktxuKpQsY1mnBY5nkHY8-->保存并抓取</button>
+    </div>
+    <div data-page-node-id="984tx8luZjIXbJijHEp7wM" class="hint" id="tkHint"></div>
+  </div>
+</div>
+
+<!--pnid:nVpOhtBmEVbZx7J5RZZrFp--><!-- 详情弹窗 -->
+<div data-page-node-id="HOXXhoqNxVicD4Gzwo8wsl" class="mask" id="dtMask">
+  <div data-page-node-id="O1KsRFNNuETpettbmb3Fio" class="modal">
+    <h3 data-page-node-id="CSZt4Td2SnhauegpHps219" id="dtTitle"><!--pnid:frkLuQxQcXmb58hTdSt9Fr-->资费详情</h3>
+    <div data-page-node-id="pjuwu0ACuZnN1egJwICway" id="dtBody"></div>
+    <div data-page-node-id="mhD7ZANo2Mq72seSTD80FR" class="row" style="margin-top:14px"><button data-page-node-id="2JPKO6x639iI68bDTQaQEe" class="btn pri" onclick="document.getElementById('dtMask').classList.remove('show')"><!--pnid:TUFtFnPQXdvixQCR5CLNAC-->关闭</button></div>
+  </div>
+</div>
+
+<script data-page-node-id="5WMe6scKj4KbWdZPtge2fl" data-pnid-children="UtZS9PoXxH0nSDZOdyG0nf">
+/* 主题跟随系统 */
+(function(){
+  var dark=false;
+  try{dark=!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)}catch(e){}
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+})();
+
+const S = {
+  owner: 'fengyu722',   // ← 改成你的 GitHub 用户名
+  repo:  'tariff-monitor',    // ← 改成你的仓库名
+  wf:    'build.yml',
+  key:   'tariff_pat'
+};
+const $ = id => document.getElementById(id);
+let DATA = {items:[], updated:'', source:''}, VIEW = [], PAGE = 1, SIZE = 20;
+let sortAsc = true, freeOnly = false, sortByPrice = false;
+
+/* ---------- 工具 ---------- */
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function money(p){return Number(p)===0?'<span class="tag free">0 元</span>':'<span class="price">¥'+p+'</span>'}
+function toast(msg){$('status').textContent=msg}
+
+/* ---------- 加载数据 ---------- */
+function load(){
+  fetch('./data/latest.json?_t='+Date.now(),{cache:'no-store'})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+    .then(j=>{
+      DATA=j; VIEW=j.items||[];
+      renderAll();
+      toast((j.source==='demo'?'演示数据 · ':'实时数据 · ')+(j.total||0)+' 条');
+      loadHistory();
+    })
+    .catch(e=>{
+      toast('数据加载失败');
+      $('tb').innerHTML='<tr><td colspan="8" class="empty">无法读取 data/latest.json<br>请确认已运行抓取脚本并提交数据（或先用本地服务器预览）</td></tr>';
+    });
+}
+function loadHistory(){
+  fetch('./data/history.json?_t='+Date.now(),{cache:'no-store'})
+    .then(r=>r.ok?r.json():null).then(j=>{
+      if(!j||!j.events||!j.events.length)return;
+      $('timeline').innerHTML=j.events.slice(0,60).map(e=>{
+        const cls=e.action==='新增'?'add':e.action==='下架'?'del':'';
+        return '<div class="ev '+cls+'"><b>'+esc(e.action)+'</b> · '+esc(e.name)+
+          ' · '+esc(e.province)+' · ¥'+esc(e.price)+' <span style="color:var(--tx3)">'+
+          esc(e.time)+'</span></div>';
+      }).join('');
+    }).catch(()=>{});
+}
+
+/* ---------- 渲染 ---------- */
+function renderAll(){renderStats();renderFilters();applyFilter();renderRank()}
+function renderStats(){
+  const items=DATA.items||[];
+  const qg=items.filter(x=>x.province==='全网(全国)').length;
+  $('s1').textContent=qg;
+  $('s2').textContent=DATA.province_count||0;
+  $('s3').textContent=DATA.total||items.length;
+  $('s3m').textContent='来源：'+(DATA.source==='demo'?'演示数据':'实时抓取');
+  $('s4').textContent=DATA.updated||'—';
+}
+function renderFilters(){
+  const provs=[...new Set((DATA.items||[]).map(x=>x.province))].sort();
+  const sel=$('prov'), cur=sel.value;
+  sel.innerHTML='<option value="">全部省份</option>'+provs.map(p=>'<option>'+esc(p)+'</option>').join('');
+  sel.value=cur;
+  const types=[...new Set((DATA.items||[]).map(x=>x.type).filter(Boolean))].sort();
+  const st=$('type'), tcur=st.value;
+  st.innerHTML='<option value="">全部类型</option>'+types.map(t=>'<option>'+esc(t)+'</option>').join('');
+  st.value=tcur;
+}
+function applyFilter(){
+  const q=$('q').value.trim().toLowerCase();
+  const p=$('prov').value, o=$('owner').value, t=$('type').value;
+  VIEW=(DATA.items||[]).filter(x=>
+    (!q||x.name.toLowerCase().includes(q))&&
+    (!p||x.province===p)&&(!o||x.owner===o)&&(!t||x.type===t)&&
+    (!freeOnly||Number(x.price)===0)
+  );
+  if(sortByPrice)VIEW.sort((a,b)=>sortAsc?a.price-b.price:b.price-a.price);
+  PAGE=1;renderTable();
+}
+function renderTable(){
+  const start=(PAGE-1)*SIZE, rows=VIEW.slice(start,start+SIZE);
+  if(!rows.length){$('tb').innerHTML='<tr><td colspan="8" class="empty">没有匹配的资费</td></tr>'}
+  else{
+    $('tb').innerHTML=rows.map(x=>
+      '<tr onclick="showDetail(\''+x.id+'\')" style="cursor:pointer">'+
+      '<td><b>'+esc(x.name)+'</b></td><td>'+money(x.price)+'</td>'+
+      '<td>'+esc(x.flow)+'</td><td>'+esc(x.voice)+'</td>'+
+      '<td>'+esc(x.province)+'</td>'+
+      '<td><span class="tag '+(x.owner==='政企'?'gov':'')+'">'+esc(x.owner)+'</span></td>'+
+      '<td>'+esc(x.type)+'</td><td>'+esc(x.updated)+'</td></tr>'
+    ).join('');
+  }
+  const pages=Math.max(1,Math.ceil(VIEW.length/SIZE));
+  $('pageInfo').textContent=PAGE+' / '+pages+'（'+VIEW.length+' 条）';
+}
+function renderRank(){
+  const d=DATA.dist||[];
+  $('rank').innerHTML=d.slice(0,15).map(x=>
+    '<span class="chip" onclick="pickProv(\''+esc(x.name)+'\')">'+esc(x.name)+' · '+x.total+'</span>'
+  ).join('');
+}
+function pickProv(name){$('prov').value=name;applyFilter();window.scrollTo({top:220,behavior:'smooth'})}
+function showDetail(id){
+  const x=(DATA.items||[]).find(r=>r.id===id);if(!x)return;
+  $('dtTitle').textContent=x.name;
+  $('dtBody').innerHTML=
+    '<p><b>月费：</b>'+money(x.price)+' &nbsp; <b>省份：</b>'+esc(x.province)+'</p>'+
+    '<p><b>流量：</b>'+esc(x.flow)+' &nbsp; <b>通话：</b>'+esc(x.voice)+'</p>'+
+    '<p><b>归属：</b>'+esc(x.owner)+' &nbsp; <b>类型：</b>'+esc(x.type)+'</p>'+
+    '<p><b>更新：</b>'+esc(x.updated)+' &nbsp; <b>ID：</b>'+esc(x.id)+'</p>';
+  $('dtMask').classList.add('show');
+}
+
+/* ---------- 交互 ---------- */
+$('q').oninput=applyFilter;
+$('prov').onchange=applyFilter;
+$('owner').onchange=applyFilter;
+$('type').onchange=applyFilter;
+$('sortPrice').onclick=()=>{sortByPrice=!sortByPrice;sortAsc=!sortAsc;
+  $('sortPrice').classList.toggle('on',sortByPrice);applyFilter()};
+$('onlyFree').onclick=()=>{freeOnly=!freeOnly;$('onlyFree').classList.toggle('on',freeOnly);applyFilter()};
+$('reset').onclick=()=>{$('q').value='';$('prov').value='';$('owner').value='';$('type').value='';
+  sortByPrice=false;freeOnly=false;sortAsc=true;
+  ['sortPrice','onlyFree'].forEach(id=>$(id).classList.remove('on'));applyFilter()};
+$('prev').onclick=()=>{if(PAGE>1){PAGE--;renderTable()}};
+$('next').onclick=()=>{if(PAGE<Math.ceil(VIEW.length/SIZE)){PAGE++;renderTable()}};
+
+/* ---------- 一键抓取 ---------- */
+$('btnFetch').onclick=()=>{
+  const tk=localStorage.getItem(S.key)||'';
+  $('tkInput').value=tk;
+  $('tkHint').textContent=tk?'已检测到本机令牌':'尚未配置令牌';
+  $('tkMask').classList.add('show');
+};
+$('tkCancel').onclick=()=>$('tkMask').classList.remove('show');
+$('tkClear').onclick=()=>{localStorage.removeItem(S.key);$('tkInput').value='';$('tkHint').textContent='令牌已清除'};
+$('tkSave').onclick=()=>{
+  const tk=$('tkInput').value.trim();
+  if(!tk){$('tkHint').textContent='请先填入令牌';return}
+  localStorage.setItem(S.key,tk);
+  if(S.owner==='REPLACE_OWNER'||S.repo==='REPLACE_REPO'){
+    $('tkHint').textContent='请先在 index.html 的 S 对象里填入 owner / repo';
+    return;
+  }
+  const api='https://api.github.com/repos/'+S.owner+'/'+S.repo+'/actions/workflows/'+S.wf+'/dispatches';
+  const hdr={'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,
+             'Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'};
+  $('tkHint').textContent='正在触发云端抓取…';
+  fetch(api,{method:'POST',headers:hdr,body:JSON.stringify({ref:'main',inputs:{mode:'default'}})})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status+' '+(r.status===401?'令牌无效或权限不足':''));return r.json()})
+    .then(()=>{$('tkHint').textContent='已触发！GitHub 正在抓取，稍后自动刷新…';poll(hdr)})
+    .catch(e=>{$('tkHint').textContent='触发失败：'+e.message});
+};
+function poll(hdr){
+  let n=0;
+  const url='https://api.github.com/repos/'+S.owner+'/'+S.repo+'/actions/workflows/'+S.wf+'/runs?per_page=1';
+  const t=setInterval(()=>{
+    n++;
+    if(n>60){clearInterval(t);$('tkHint').textContent='等待超时，请手动刷新页面';return}
+    fetch(url,{headers:hdr}).then(r=>r.ok?r.json():null).then(j=>{
+      const run=j&&j.workflow_runs&&j.workflow_runs[0];
+      if(!run)return;
+      if(run.status==='completed'){
+        clearInterval(t);
+        $('tkHint').textContent='抓取完成，正在刷新…';
+        setTimeout(()=>location.reload(),800);
+      }else{
+        $('tkHint').textContent='云端抓取中…（第 '+n+' 次查询，状态 '+run.status+'）';
+      }
+    }).catch(()=>{});
+  },10000);
+}
+
+load();
+</script>
+</body>
+</html>
