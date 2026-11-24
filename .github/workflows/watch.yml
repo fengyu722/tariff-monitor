@@ -1,0 +1,61 @@
+name: Watch Tariff Changes
+
+# 每小时检查：四川联通 / 四川移动 / 贵州移动
+# 只在外站时间戳变化时下载明细；有上新 / 改价 / 下架才推送。
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tariff-watch
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 检查三个目标的变更
+        env:
+          TZ: Asia/Shanghai
+        run: python3 -u scripts/watch.py
+
+      - name: 保存快照与变更记录
+        run: |
+          set -e
+          git config user.name "tariff-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/watch
+          if git diff --cached --quiet; then
+            echo "本轮无变化，跳过提交"
+            exit 0
+          fi
+          git commit -m "chore: watch tariff changes $(date -u +%FT%TZ)"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            echo "push 失败，重试 $i/3"
+            sleep 6
+          done
+          echo "::error::连续 3 次 push 失败"
+          exit 1
+
+      - name: 推送上新 / 改价 / 下架通知
+        env:
+          NOTIFY_DATA_FILE: data/watch/history.json
+          XIZHI_WEBHOOK:    ${{ secrets.XIZHI_WEBHOOK }}
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          FEISHU_WEBHOOK:   ${{ secrets.FEISHU_WEBHOOK }}
+          WECOM_WEBHOOK:    ${{ secrets.WECOM_WEBHOOK }}
+          ALWAYS_NOTIFY:    ${{ vars.ALWAYS_NOTIFY }}
+        run: python3 scripts/notify.py
