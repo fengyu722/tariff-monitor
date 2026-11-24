@@ -1,0 +1,89 @@
+name: Fetch Tariff
+
+# 定时 + 手动触发。定时用 UTC，cron '0 1 * * *' = 北京时间每天 09:00（只抓一次）
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '运行模式'
+        required: false
+        default: 'default'
+        type: choice
+        options: [default, force]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tariff-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 可选：把上一轮的 data 作为缓存还原，用于变更对比（脚本自身也会读仓库里的 latest.json）
+      - name: 抓取并生成 JSON
+        env:
+          OUT_DIR: data
+          TARGET_PROVINCE: ${{ vars.TARGET_PROVINCE }}
+        run: |
+          set -e
+          python3 -u scripts/fetch.py
+
+      - name: 体量闸门（防止抓残缺导致数据缩水）
+        run: |
+          set -e
+          OLD=$(git show HEAD:data/latest.json 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('total',0))" 2>/dev/null || echo 0)
+          NEW=$(python3 -c "import json;print(json.load(open('data/latest.json')).get('total',0))")
+          echo "上轮 $OLD 条 -> 本轮 $NEW 条"
+          if [ "$OLD" -gt 50 ] && [ "$NEW" -lt $(( OLD * 5 / 10 )) ]; then
+            echo "::warning::本轮较上轮缩水超过 50%，已跳过提交以保护线上数据"
+            echo "SKIP_COMMIT=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: 提交数据
+        if: env.SKIP_COMMIT != 'true'
+        run: |
+          set -e
+          git config user.name "tariff-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+            exit 0
+          fi
+          git commit -m "chore: update tariff data $(date -u +%FT%TZ)"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            echo "push 失败，重试 $i/3"
+            sleep 6
+          done
+          echo "::error::连续 3 次 push 失败"
+          exit 1
+
+      # 推送变更通知：webhook 在仓库 Secrets 里配置，没配则只打印摘要
+      - name: 推送上新/改价/下架通知
+        if: always()
+        env:
+          XIZHI_WEBHOOK:    ${{ secrets.XIZHI_WEBHOOK }}
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          FEISHU_WEBHOOK:   ${{ secrets.FEISHU_WEBHOOK }}
+          WECOM_WEBHOOK:    ${{ secrets.WECOM_WEBHOOK }}
+          ALWAYS_NOTIFY:    ${{ vars.ALWAYS_NOTIFY }}
+        run: |
+          if [ "${SKIP_COMMIT}" = "true" ]; then
+            echo "数据缩水已跳过提交，同时跳过通知，避免推送错误变更"
+            exit 0
+          fi
+          python3 scripts/notify.py
