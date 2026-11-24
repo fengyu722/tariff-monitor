@@ -2,8 +2,11 @@
 
 零服务器方案：**GitHub Actions 抓数据 → 仓库存 JSON → GitHub Pages 托管页面**。
 
-> **当前配置：只抓四川联通**（`scripts/fetch.py` 里 `TARGET_PROVINCE = "四川"`）。
-> 已实测首次即抓到 711 条四川真实资费（`source=live`）。换省只需改这一行，见下方「切换省份」。
+> **看板数据源**（页面顶部「数据源」下拉切换）：
+> - `中国联通 · 全国` / `中国移动 · 全国`：直接读取 [rdtscx/tariff](https://github.com/rdtscx/tariff) 发布的 31 省 + 全网 JSON，页面内可随时切省份，数据由对方仓库每日自动更新。
+> - `联通四川 · 本站实时`：本仓库 `scripts/fetch.py` 自抓的四川联通数据（`source=live`，首次实测 711 条），可用「一键抓取」触发更新。
+>
+> 本仓库的 Actions 只负责第三项；前两项不需要在本仓库配置任何密钥或变量。
 
 ## 目录结构
 
