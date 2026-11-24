@@ -80,6 +80,18 @@ TARGET_PROVINCE = "四川"   # 改成想要的省：北京、广东、浙江、�
 - `build.yml` 的 `cron: '0 1 * * *'` 是 **UTC**，即北京时间每天 **09:00 抓取一次**
 - 手动触发在 Actions 页面点按钮，或页面「一键抓取」用 PAT 调 API
 
+## 四川联通 / 四川移动 / 贵州移动 专项监听
+
+`.github/workflows/watch.yml` 每小时运行一次 `scripts/watch.py`：
+
+- 四川联通：读本仓库 `data/latest.json`（每日 09:00 自抓结果）
+- 四川移动 / 贵州移动：读 [rdtscx/tariff](https://github.com/rdtscx/tariff) 发布的 JSON；先用 `latest.json` 的时间戳判断是否更新，没变就跳过，变了才下载省份明细
+- 只保存精简快照 `data/watch/<key>.json` 和变更事件 `data/watch/history.json`，不复制外部全量数据
+- 首次运行只建立基线，不会把存量当成“新增”刷屏
+- 检测到 **新增 / 改价 / 下架 / 字段变更** 后，复用下方同一组 webhook Secrets 推送；无变更不打扰
+
+推送渠道仍然只认 Secrets（`XIZHI_WEBHOOK` 等），Variables 不用填。`ALWAYS_NOTIFY=1` 会连“无变更”也播报。
+
 ## 上新/改价推送
 
 每次抓取后，`scripts/notify.py` 会对比上一轮数据，识别出 **新增 / 改价 / 内容变更 / 下架** 四类变化，并推送到 webhook。
