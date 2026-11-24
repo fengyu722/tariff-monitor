@@ -85,6 +85,11 @@ a{color:var(--ac)}
 .tl .ev::before{content:"";position:absolute;left:-21px;top:14px;width:9px;height:9px;
   border-radius:50%;background:var(--ac)}
 .tl .ev.add::before{background:var(--ok)} .tl .ev.del::before{background:var(--bad)}
+.dv{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 16px;margin-top:12px}
+.dv .r{display:flex;gap:10px;font-size:12.5px;line-height:1.6;border-bottom:1px solid var(--bd);padding:6px 0}
+.dv .k{flex:0 0 92px;color:var(--tx3)}
+.dv .v{word-break:break-word;white-space:normal}
+.src-tag{font-size:11px;padding:2px 7px;border-radius:6px;background:var(--glass2);border:1px solid var(--bd);color:var(--tx2)}
 @media(max-width:640px){h1{font-size:18px}.card .v{font-size:24px}.panel{padding:14px}}
 </style>
 </head>
@@ -111,8 +116,13 @@ a{color:var(--ac)}
   <div data-page-node-id="kFWrsSmR1N0Ggn9hMKnUEy" class="panel">
     <h2 data-page-node-id="uGj4zeyscJgk1IkRpJeV1R"><!--pnid:hheWHH85qr859tIvjKWZIQ-->📋 资费列表</h2>
     <div data-page-node-id="WdDLlqAGeEPZbTHlKkwzBQ" class="bar">
-      <input data-page-node-id="R9c2iZGyJNee5TM6caiteT" class="search" id="q" placeholder="搜索套餐名称…">
+      <select id="src" title="选择运营商 / 数据源">
+        <option value="unicom">中国联通 · 全国</option>
+        <option value="mobile">中国移动 · 全国</option>
+        <option value="local">联通四川 · 本站实时</option>
+      </select>
       <select data-page-node-id="6YME7Ws3jhXX1jafmbgikq" id="prov"><option data-page-node-id="2h8efqtQbUSTT2j4vbnh9Q" value><!--pnid:YPAcXmHiqmyOrwnSt6qc6r-->全部省份</option></select>
+      <input data-page-node-id="R9c2iZGyJNee5TM6caiteT" class="search" id="q" placeholder="搜索套餐名称…">
       <select data-page-node-id="16tp1pLiHaGGjVw2PXGcOM" id="owner"><option data-page-node-id="TCbSnvDL6p1xrO5yhDrlTT" value><!--pnid:EKFcRaCFvyVbizAjhgF1J8-->全部归属</option><option data-page-node-id="A7opnWTN5qM1Lc5CJdJbYL"><!--pnid:QXuyX1YArgmzZcOG684xjP-->个人</option><option data-page-node-id="5o2xzLWsXXFs2juqWlxHZu"><!--pnid:9nJCF1ZeS2YI5TJH42ut65-->政企</option></select>
       <select data-page-node-id="6vcG7hIFr9BtrdhnTKd202" id="type"><option data-page-node-id="8SD2bRoW46Dwz6ZJMscgL8" value><!--pnid:nth8VmqC44UTxaEQDdd3uT-->全部类型</option></select>
       <button data-page-node-id="xlZaGPcWXdNOGFBJVsrayp" class="btn" id="sortPrice"><!--pnid:kZDVoHsdGqxThxHT2los2N-->按价格</button>
@@ -187,7 +197,25 @@ const S = {
   wf:    'build.yml',
   key:   'tariff_pat'
 };
+/* 外部数据源：rdtscx/tariff 同时维护移动、联通等运营商的 31 省数据，
+   静态文件允许跨域读取（Access-Control-Allow-Origin: *）。 */
+const EXT = {
+  unicom: {label:'中国联通', base:'https://rdtscx.github.io/tariff/unicom/data/'},
+  mobile: {label:'中国移动', base:'https://rdtscx.github.io/tariff/data/'},
+  local:  {label:'联通四川·本站实时', base:'./data/'}
+};
+const FIELD_CN = {
+  fee:'资费标准', feesStandard:'资费标准', feeUnit:'资费单位',
+  firstLevel:'归属', secondLevel:'资费类型', codeType:'资费类型',
+  reportNo:'方案编号', useScope:'适用范围', saleChnl:'销售渠道',
+  onDate:'上线日期', offDate:'下线日期', validPeriod:'有效期限',
+  onlinePeriod:'在网要求', unsubscribe:'退订方式', responsibility:'违约责任',
+  extraFees:'超出资费说明', serviceContent:'其他服务内容', otherNotes:'其他说明',
+  minute:'国内通话', commonData:'国内通用流量', dataUnit:'流量单位',
+  sms:'国内短信', orientTraffic:'定向流量', broadBand:'宽带', iptv:'移动高清'
+};
 const $ = id => document.getElementById(id);
+let SRC='unicom', PROV='', PROV_LABEL='', META={}, HIST={}, LOADING=0;
 let DATA = {items:[], updated:'', source:''}, VIEW = [], PAGE = 1, SIZE = 20;
 let sortAsc = true, freeOnly = false, sortByPrice = false;
 
@@ -197,19 +225,130 @@ function money(p){return Number(p)===0?'<span class="tag free">0 元</span>':'<s
 function toast(msg){$('status').textContent=msg}
 
 /* ---------- 加载数据 ---------- */
-function load(){
-  fetch('./data/latest.json?_t='+Date.now(),{cache:'no-store'})
-    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
-    .then(j=>{
-      DATA=j; VIEW=j.items||[];
-      renderAll();
-      toast((j.source==='demo'?'演示数据 · ':'实时数据 · ')+(j.total||0)+' 条');
-      loadHistory();
-    })
-    .catch(e=>{
-      toast('数据加载失败');
-      $('tb').innerHTML='<tr><td colspan="8" class="empty">无法读取 data/latest.json<br>请确认已运行抓取脚本并提交数据（或先用本地服务器预览）</td></tr>';
-    });
+function fetchJSON(url){
+  return fetch(url,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+}
+function cnFields(o){
+  if(!o||typeof o!=='object')return {};
+  const r={};let fee='',feeU='',dt='',dtU='';
+  Object.keys(o).forEach(k=>{
+    const v=o[k];if(v===''||v==null)return;
+    const ck=FIELD_CN[k]||k;
+    if(k==='feeUnit'){feeU=String(v);return}
+    if(k==='dataUnit'){dtU=String(v);return}
+    if(ck==='资费标准'){fee=String(v);return}
+    if(ck==='国内通用流量'){dt=String(v);return}
+    if(!Object.prototype.hasOwnProperty.call(r,ck))r[ck]=String(v);
+  });
+  if(fee)r['资费标准']=(/[元分角]/.test(fee)||!feeU)?fee:fee+feeU;
+  if(dt)r['国内通用流量']=/(GB|MB|TB|KB)/i.test(dt)?dt:dt+dtU;
+  return r;
+}
+function priceOf(s){const m=String(s||'').match(/(\d+(?:\.\d+)?)/);return m?Number(m[1]):0}
+
+function boot(){
+  $('src').value=SRC;
+  Promise.all([loadMeta('local'),loadMeta('unicom'),loadMeta('mobile')])
+    .catch(()=>{}).then(()=>{populateProv();loadData()});
+}
+function loadMeta(src){
+  if(META[src])return Promise.resolve(META[src]);
+  if(src==='local'){
+    return fetchJSON('./data/latest.json?_t='+Date.now()).then(j=>{
+      const items=j.items||[];
+      const names=[...new Set(items.map(x=>x.province))];
+      META.local={
+        sections:names.map(n=>({section:n,name:n,total:items.filter(x=>x.province===n).length,updated:j.updated||''})),
+        updated:j.updated||'',dist:j.dist||[]
+      };
+      return META.local;
+    }).catch(()=>{META.local={sections:[],updated:'',dist:[]};return META.local});
+  }
+  return fetchJSON(EXT[src].base+'latest.json?_t='+Date.now()).then(j=>{
+    const secs=j.sections||[];
+    META[src]={
+      sections:secs,updated:j.updated||'',
+      dist:secs.filter(s=>s.section!=='quanguo').slice().sort((a,b)=>(b.total||0)-(a.total||0))
+    };
+    return META[src];
+  }).catch(()=>{META[src]={sections:[],updated:'',dist:[]};return META[src]});
+}
+function populateProv(){
+  const secs=(META[SRC]&&META[SRC].sections)||[],sel=$('prov');
+  sel.innerHTML=(SRC==='local'?'<option value="">全部省份</option>':'')+
+    secs.map(s=>'<option value="'+esc(s.section)+'">'+esc(s.name||s.section)+'</option>').join('');
+  let v='';
+  for(const p of ['sichuan','四川','beijing','北京']){
+    const hit=secs.find(s=>s.section===p||s.name===p);
+    if(hit){v=hit.section;break}
+  }
+  if(!v&&secs.length)v=secs[0].section;
+  sel.value=v;PROV=v;setProvLabel();
+}
+function setProvLabel(){
+  const s=((META[SRC]&&META[SRC].sections)||[]).find(x=>x.section===PROV);
+  PROV_LABEL=s?(s.name||s.section):PROV;
+}
+function loadData(){
+  LOADING++;
+  const token=LOADING;
+  $('status').textContent='加载中…';
+  $('btnFetch').style.display=SRC==='local'?'':'none';
+  $('tb').innerHTML='<tr><td colspan="8" class="empty">正在读取 '+esc(EXT[SRC].label)+' 数据…</td></tr>';
+  return SRC==='local'?loadLocal(token):loadExternal(token);
+}
+function loadLocal(token){
+  fetchJSON('./data/latest.json?_t='+Date.now()).then(j=>{
+    if(token!==LOADING)return;
+    DATA=j;VIEW=j.items||[];
+    renderAll();
+    toast((j.source==='demo'?'演示数据 · ':'实时数据 · ')+(j.total||0)+' 条');
+    loadHistory();
+  }).catch(()=>{
+    if(token!==LOADING)return;
+    toast('数据加载失败');
+    $('tb').innerHTML='<tr><td colspan="8" class="empty">无法读取本地 data/latest.json</td></tr>';
+  });
+}
+function loadExternal(token){
+  const url=EXT[SRC].base+encodeURIComponent(PROV)+'.json?_t='+Date.now();
+  fetchJSON(url).then(j=>{
+    if(token!==LOADING)return;
+    const items=(j.items||[]).map((it,i)=>normalizeExt(it,i));
+    const sec=((META[SRC]&&META[SRC].sections)||[]).find(s=>s.section===PROV)||{};
+    DATA={
+      items:items,total:items.length,
+      updated:sec.updated||j.timestamp||META[SRC].updated||'',
+      source:EXT[SRC].label,dist:META[SRC].dist||[]
+    };
+    renderAll();
+    toast(EXT[SRC].label+' · '+PROV_LABEL+' · '+items.length+' 条');
+    loadExtHistory();
+  }).catch(e=>{
+    if(token!==LOADING)return;
+    toast('数据加载失败：'+e.message);
+    $('tb').innerHTML='<tr><td colspan="8" class="empty">无法读取 '+esc(PROV)+'.json<br>请稍后重试或切换省份</td></tr>';
+  });
+}
+function normalizeExt(it,i){
+  const mobile=SRC==='mobile';
+  const f=mobile?cnFields(it.fields||{}):cnFields(it.detail||{});
+  const d=mobile?(it.fields||{}):(it.detail||{});
+  const name=mobile?(it.name||f['业务名称']||''):(it.title||it.name||d.name||'');
+  const fee=f['资费标准']||'',scope=f['适用范围']||'';
+  const sec=((META[SRC]&&META[SRC].sections)||[]).find(s=>s.section===PROV)||{};
+  return {
+    id:SRC+'_'+PROV+'_'+i,
+    name:name,
+    price:priceOf(fee),
+    flow:f['国内通用流量']||'—',
+    voice:f['国内通话']||'—',
+    province:PROV_LABEL,
+    owner:(/政企|集团|企业|单位|商务/.test(scope||f['归属']||'')?'政企':'个人'),
+    type:f['资费类型']||it.secondLevel||it.codeType||'—',
+    updated:sec.updated||'',
+    detail:f
+  };
 }
 function loadHistory(){
   fetch('./data/history.json?_t='+Date.now(),{cache:'no-store'})
@@ -218,28 +357,47 @@ function loadHistory(){
       $('timeline').innerHTML=j.events.slice(0,60).map(e=>{
         const cls=e.action==='新增'?'add':e.action==='下架'?'del':'';
         return '<div class="ev '+cls+'"><b>'+esc(e.action)+'</b> · '+esc(e.name)+
-          ' · '+esc(e.province)+' · ¥'+esc(e.price)+' <span style="color:var(--tx3)">'+
+          ' · '+esc(e.province)+(e.price!==undefined?' · ¥'+esc(e.price):'')+' <span style="color:var(--tx3)">'+
           esc(e.time)+'</span></div>';
       }).join('');
     }).catch(()=>{});
 }
+function loadExtHistory(){
+  const render=()=>{
+    const ev=[];
+    (HIST[SRC]||[]).slice(-500).forEach(s=>{
+      const p=s[PROV];if(!p)return;
+      [['added','新增','add'],['removed','下架','del'],['modified','改价','']].forEach(x=>{
+        (p[x[0]+'_names']||[]).forEach(n=>ev.push({name:n,action:x[1],cls:x[2],time:s.ts}));
+      });
+    });
+    $('timeline').innerHTML=ev.length?ev.slice(-60).reverse().map(e=>
+      '<div class="ev '+e.cls+'"><b>'+e.action+'</b> · '+esc(e.name)+' <span style="color:var(--tx3)">'+esc(e.time)+'</span></div>'
+    ).join(''):'<div class="empty">该省份近期无变更记录</div>';
+  };
+  if(HIST[SRC]){render();return}
+  $('timeline').innerHTML='<div class="empty">正在加载变更记录…</div>';
+  fetchJSON(EXT[SRC].base+'history.json?_t='+Date.now()).then(j=>{
+    HIST[SRC]=Array.isArray(j)?j:[];render();
+  }).catch(()=>{$('timeline').innerHTML='<div class="empty">变更记录加载失败</div>'});
+}
 
 /* ---------- 渲染 ---------- */
-function renderAll(){renderStats();renderFilters();applyFilter();renderRank()}
+function renderAll(){renderStats();renderTypeFilter();applyFilter();renderRank();renderSub()}
 function renderStats(){
-  const items=DATA.items||[];
-  const qg=items.filter(x=>x.province==='全网(全国)').length;
+  const items=DATA.items||[],secs=(META[SRC]&&META[SRC].sections)||[];
+  const qg=SRC==='local'?items.filter(x=>x.province==='全网(全国)').length:((secs.find(s=>s.section==='quanguo')||{}).total||0);
   $('s1').textContent=qg;
-  $('s2').textContent=DATA.province_count||0;
+  $('s2').textContent=SRC==='local'?(DATA.province_count||new Set(items.map(x=>x.province)).size):secs.filter(s=>s.section!=='quanguo').length;
   $('s3').textContent=DATA.total||items.length;
-  $('s3m').textContent='来源：'+(DATA.source==='demo'?'演示数据':'实时抓取');
+  $('s3m').textContent='来源：'+(DATA.source||EXT[SRC].label);
   $('s4').textContent=DATA.updated||'—';
 }
-function renderFilters(){
-  const provs=[...new Set((DATA.items||[]).map(x=>x.province))].sort();
-  const sel=$('prov'), cur=sel.value;
-  sel.innerHTML='<option value="">全部省份</option>'+provs.map(p=>'<option>'+esc(p)+'</option>').join('');
-  sel.value=cur;
+function renderSub(){
+  $('sub').textContent=EXT[SRC].label+' · '+PROV_LABEL+' · 31 省 / 全网可切换';
+  document.title=EXT[SRC].label+' '+PROV_LABEL+' · 资费监控';
+}
+function renderTypeFilter(){
   const types=[...new Set((DATA.items||[]).map(x=>x.type).filter(Boolean))].sort();
   const st=$('type'), tcur=st.value;
   st.innerHTML='<option value="">全部类型</option>'+types.map(t=>'<option>'+esc(t)+'</option>').join('');
@@ -247,7 +405,7 @@ function renderFilters(){
 }
 function applyFilter(){
   const q=$('q').value.trim().toLowerCase();
-  const p=$('prov').value, o=$('owner').value, t=$('type').value;
+  const p=SRC==='local'?$('prov').value:'', o=$('owner').value, t=$('type').value;
   VIEW=(DATA.items||[]).filter(x=>
     (!q||x.name.toLowerCase().includes(q))&&
     (!p||x.province===p)&&(!o||x.owner===o)&&(!t||x.type===t)&&
@@ -274,25 +432,41 @@ function renderTable(){
 }
 function renderRank(){
   const d=DATA.dist||[];
-  $('rank').innerHTML=d.slice(0,15).map(x=>
-    '<span class="chip" onclick="pickProv(\''+esc(x.name)+'\')">'+esc(x.name)+' · '+x.total+'</span>'
-  ).join('');
+  $('rank').innerHTML=d.slice(0,15).map(x=>{
+    const key=x.section||x.name,label=x.name||x.section;
+    return '<span class="chip" onclick="pickProv(\''+esc(key)+'\',\''+esc(label)+'\')">'+esc(label)+' · '+x.total+'</span>';
+  }).join('');
 }
-function pickProv(name){$('prov').value=name;applyFilter();window.scrollTo({top:220,behavior:'smooth'})}
+function pickProv(key,label){
+  if(SRC==='local'){$('prov').value=key||label;applyFilter()}
+  else{$('prov').value=key;PROV=key;PROV_LABEL=label||key;loadData()}
+  window.scrollTo({top:220,behavior:'smooth'});
+}
 function showDetail(id){
   const x=(DATA.items||[]).find(r=>r.id===id);if(!x)return;
   $('dtTitle').textContent=x.name;
-  $('dtBody').innerHTML=
-    '<p><b>月费：</b>'+money(x.price)+' &nbsp; <b>省份：</b>'+esc(x.province)+'</p>'+
+  let html='<p><b>月费：</b>'+money(x.price)+' &nbsp; <b>省份：</b>'+esc(x.province)+'</p>'+
     '<p><b>流量：</b>'+esc(x.flow)+' &nbsp; <b>通话：</b>'+esc(x.voice)+'</p>'+
-    '<p><b>归属：</b>'+esc(x.owner)+' &nbsp; <b>类型：</b>'+esc(x.type)+'</p>'+
-    '<p><b>更新：</b>'+esc(x.updated)+' &nbsp; <b>ID：</b>'+esc(x.id)+'</p>';
+    '<p><b>归属：</b>'+esc(x.owner)+' &nbsp; <b>类型：</b>'+esc(x.type)+'</p>';
+  const det=x.detail||{},keys=Object.keys(det);
+  if(keys.length){
+    html+='<div class="dv">'+keys.map(k=>
+      '<div class="r"><span class="k">'+esc(k)+'</span><span class="v">'+esc(det[k])+'</span></div>'
+    ).join('')+'</div>';
+  }else{
+    html+='<p><b>更新：</b>'+esc(x.updated)+' &nbsp; <b>ID：</b>'+esc(x.id)+'</p>';
+  }
+  $('dtBody').innerHTML=html;
   $('dtMask').classList.add('show');
 }
 
 /* ---------- 交互 ---------- */
 $('q').oninput=applyFilter;
-$('prov').onchange=applyFilter;
+$('src').onchange=()=>{SRC=$('src').value;PROV='';populateProv();loadData()};
+$('prov').onchange=()=>{
+  PROV=$('prov').value;
+  if(SRC==='local')applyFilter();else{setProvLabel();loadData()}
+};
 $('owner').onchange=applyFilter;
 $('type').onchange=applyFilter;
 $('sortPrice').onclick=()=>{sortByPrice=!sortByPrice;sortAsc=!sortAsc;
@@ -350,7 +524,7 @@ function poll(hdr){
   },10000);
 }
 
-load();
+boot();
 </script>
 </body>
 </html>
