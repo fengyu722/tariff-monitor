@@ -22,7 +22,9 @@ import datetime
 import urllib.request
 import urllib.parse
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "history.json")
+DATA_FILE = os.environ.get("NOTIFY_DATA_FILE") or os.path.join(
+    os.path.dirname(__file__), "..", "data", "history.json"
+)
 
 ACTION_ICON = {"新增": "🆕", "改价": "💰", "变更": "✏️", "下架": "❌"}
 
