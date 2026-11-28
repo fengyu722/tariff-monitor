@@ -25,6 +25,10 @@ import urllib.parse
 DATA_FILE = os.environ.get("NOTIFY_DATA_FILE") or os.path.join(
     os.path.dirname(__file__), "..", "data", "history.json"
 )
+# 推送游标：记录上次推送到的时间，避免同一批事件被反复推送
+STATE_FILE = os.environ.get("NOTIFY_STATE_FILE") or os.path.join(
+    os.path.dirname(__file__), "..", "data", "watch", "notify_state.json"
+)
 
 ACTION_ICON = {"新增": "🆕", "改价": "💰", "变更": "✏️", "下架": "❌"}
 
@@ -34,7 +38,42 @@ def load_events():
         return [], ""
     with open(DATA_FILE, encoding="utf-8") as f:
         j = json.load(f)
-    return j.get("events", []), j.get("updated", "")
+    events = j.get("events", [])
+
+    # 只推送游标之后的新事件。游标不存在时，只认最近 10 分钟内的事件，
+    # 防止历史数据被当成新推送刷屏。
+    cursor = ""
+    if os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, encoding="utf-8") as f:
+                cursor = json.load(f).get("last_push", "")
+        except Exception:
+            cursor = ""
+    if cursor:
+        events = [e for e in events if str(e.get("time", "")) > cursor]
+    # 无游标时不额外过滤：数据源（pending.json）本身就只含本轮新增。
+    return events, j.get("updated", "")
+
+
+def read_state():
+    if not os.path.exists(STATE_FILE):
+        return {}
+    try:
+        with open(STATE_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_cursor(events):
+    if not events:
+        return
+    latest = max(str(e.get("time", "")) for e in events)
+    os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+    state = read_state()
+    state.update({"last_push": latest, "last_push_date": datetime.date.today().isoformat(), "count": len(events)})
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
 
 
 def group(events):
@@ -160,6 +199,9 @@ def main():
 
     if not (xizhi or ding or feishu or wecom):
         print("[info] 未配置任何 webhook，仅打印摘要")
+    else:
+        # 推送成功后记录游标，避免本批事件下次被重复推送
+        save_cursor(events)
 
 
 if __name__ == "__main__":
