@@ -25,6 +25,12 @@ import urllib.parse
 DATA_FILE = os.environ.get("NOTIFY_DATA_FILE") or os.path.join(
     os.path.dirname(__file__), "..", "data", "history.json"
 )
+# 监听任务（watch.yml）历史上传入的是累积的 history.json，会导致每轮把全部
+# 历史事件再推一遍。改为自动读取同目录的 pending.json——它只含本轮新增。
+if DATA_FILE.replace("\\", "/").endswith("data/watch/history.json"):
+    _candidate = DATA_FILE.replace("history.json", "pending.json")
+    if os.path.exists(_candidate):
+        DATA_FILE = _candidate
 # 推送游标：记录上次推送到的时间，避免同一批事件被反复推送
 STATE_FILE = os.environ.get("NOTIFY_STATE_FILE") or os.path.join(
     os.path.dirname(__file__), "..", "data", "watch", "notify_state.json"
@@ -161,6 +167,14 @@ def main():
 
     if total == 0 and os.environ.get("ALWAYS_NOTIFY") != "1":
         print("[info] 无变更，跳过推送（设 ALWAYS_NOTIFY=1 可强制播报）")
+        return
+
+    # 每日节流：工作流每小时检查，但同一天最多推送一次，避免频繁打扰。
+    # 未推过的事件会保留在 history.json，等第二天合并推送。
+    today = datetime.date.today().isoformat()
+    state = read_state()
+    if state.get("last_push_date") == today and os.environ.get("ALWAYS_NOTIFY") != "1":
+        print("[info] 今天已推送过，跳过（每天最多一次；设 ALWAYS_NOTIFY=1 可关闭节流）")
         return
 
     title = f"资费变更日报 · {datetime.date.today().isoformat()}"
